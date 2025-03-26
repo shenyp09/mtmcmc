@@ -9,13 +9,13 @@
 #############################################
 
 # 目标能谱数据文件路径
-TARGET_SPECTRUM = "data/target.txt"
+TARGET_SPECTRUM = "data/synthetic_target.txt"
 
 # 模板能谱数据文件路径列表
 TEMPLATE_SPECTRA = [
-    "data/template1.txt",
-    "data/template2.txt",
-    "data/template3.txt",
+    "data/synthetic_template1.txt",
+    "data/synthetic_template2.txt",
+    "data/synthetic_template3.txt",
 ]
 
 #############################################
@@ -24,6 +24,9 @@ TEMPLATE_SPECTRA = [
 
 # 结果输出目录
 OUTPUT_DIR = "results"
+
+# 是否在输出目录中添加时间戳子目录
+ADD_TIMESTAMP = True
 
 #############################################
 # MCMC参数配置
@@ -76,3 +79,6 @@ INTERACTIVE_PLOTS = True
 
 # HTML模板目录，None表示使用内置模板
 TEMPLATE_DIR = None
+
+# HTML报告语言设置，可选值: ["zh"], ["en"], ["zh", "en"]
+HTML_LANGUAGES = ["zh", "en"]

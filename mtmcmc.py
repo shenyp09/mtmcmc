@@ -15,6 +15,7 @@ import sys
 import numpy as np
 import time
 from pathlib import Path
+from datetime import datetime
 
 from data_loader import load_data, preprocess_data
 from model import log_probability
@@ -29,8 +30,11 @@ import config
 
 def main():
     """主函数"""
-    # 创建输出目录
+    # 创建输出目录（添加时间戳）
     output_dir = Path(config.OUTPUT_DIR)
+    if hasattr(config, "ADD_TIMESTAMP") and config.ADD_TIMESTAMP:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = output_dir / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("正在加载数据...")
@@ -101,7 +105,7 @@ def main():
     # 生成HTML报告
     if config.HTML_REPORT:
         print("正在生成HTML报告...")
-        html_file = generate_html_report(
+        html_files = generate_html_report(
             y,
             ysigma,
             templates,
@@ -112,8 +116,13 @@ def main():
             template_dir=config.TEMPLATE_DIR,
             output_dir=output_dir,
             interactive=config.INTERACTIVE_PLOTS,
+            languages=config.HTML_LANGUAGES,
         )
-        print(f"HTML报告已生成: {html_file}")
+
+        # 打印各语言版本HTML报告的路径
+        for lang, html_file in html_files.items():
+            lang_name = "中文" if lang == "zh" else "英文"
+            print(f"{lang_name}HTML报告已生成: {html_file}")
 
     print(f"所有结果已保存至 {output_dir}")
 

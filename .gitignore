@@ -1,0 +1,34 @@
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 数据文件夹
+/data/
+/data/*
+
+# 结果文件夹
+/results/
+/results/*
+
+# 分发与打包
+dist/
+build/
+*.egg-info/
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# 编辑器配置
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db 
