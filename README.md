@@ -5,23 +5,27 @@
 
 多模板MCMC贝叶斯分析是一个用于能谱拟合的Python工具包，它利用马尔可夫链蒙特卡洛（MCMC）方法进行贝叶斯分析，能够同时拟合多个模板谱。
 
+[English README](README_EN.md)
+
 ## 特性
 
 - 支持多模板能谱的同时拟合
 - 基于emcee的高效MCMC采样
-- 多种先验分布选择（均匀分布、正态分布、对数正态分布等）
+- 多种先验分布选择（均匀分布、正态分布、对数正态分布、截断正态分布）
 - 全面的后验分布与拟合结果分析
 - 生成美观的可视化图表
 - 支持中英文双语HTML报告生成
 - 交互式图表支持（使用Plotly）
 - 自动时间戳输出目录
+- 详细的参数统计分析（均值、中位数、方差、多种置信区间）
+- 科学计数法显示拟合参数
 
 ## 安装
 
 1. 克隆仓库：
 
 ```bash
-git clone https://github.com/shenyp09/mtmcmc.git
+git clone https://github.com/username/mtmcmc.git
 cd mtmcmc
 ```
 
@@ -70,11 +74,15 @@ python example.py
 - `NCORES`: 使用的CPU核心数，None表示使用全部可用核心
 
 ### 先验分布配置
-- `PRIORS`: 各模板的先验分布设置
+- `PRIORS`: 各模板的先验分布设置，支持以下分布类型：
+  - `uniform`: 均匀分布，参数为min和max
+  - `normal`: 正态分布，参数为mu和sigma
+  - `lognormal`: 对数正态分布，参数为mu和sigma
+  - `truncnorm`: 截断正态分布，参数为min、max、mu和sigma
 - `DEFAULT_PRIOR`: 默认先验分布设置
 
 ### 误差处理和HTML报告选项
-- `ERROR_HANDLING`: 误差处理方式
+- `ERROR_HANDLING`: 误差处理方式（'target'、'template'或'both'）
 - `HTML_REPORT`: 是否生成HTML报告
 - `INTERACTIVE_PLOTS`: HTML报告中是否包含交互式图表
 - `TEMPLATE_DIR`: HTML模板目录
@@ -84,11 +92,11 @@ python example.py
 
 - `mtmcmc.py`: 主程序
 - `data_loader.py`: 数据加载与预处理模块
-- `model.py`: 模型定义模块
+- `model.py`: 模型定义和先验分布模块
 - `mcmc_sampler.py`: MCMC采样模块
 - `analyzer.py`: 结果分析模块
-- `visualizer.py`: 可视化模块
-- `html_reporter.py`: HTML报告生成模块
+- `visualizer.py`: 可视化模块（支持中英文双语图表）
+- `html_reporter.py`: HTML报告生成模块（支持中英文双语报告）
 - `config.py`: 配置文件
 - `example.py`: 示例脚本
 
@@ -102,7 +110,7 @@ python example.py
 ...
 ```
 
-## 结果
+## 结果分析
 
 分析结果将保存在输出目录中，包括：
 
@@ -110,7 +118,21 @@ python example.py
 - 拟合结果与残差分析
 - 模板贡献分析
 - 误差贡献分析
-- 综合HTML报告
+- 参数统计分析（均值、中位数、方差、多种置信区间）
+- 综合HTML报告（中文和/或英文）
+
+### 参数统计分析
+
+对每个拟合参数提供以下统计量：
+- 中位数值
+- 平均值
+- 标准差
+- 方差
+- MAP估计值（最大后验概率估计）
+- 68% 置信区间
+- 95% 置信区间
+- 99.7% 置信区间
+- 上下误差范围
 
 ## 许可证
 
