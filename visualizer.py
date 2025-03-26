@@ -319,11 +319,15 @@ def create_fit_plot(
 
     if lang == "zh":
         stats_text = (
-            f"$\chi^2 = {chi2:.2f}$\n$\chi^2_r = {reduced_chi2:.3f}$\n自由度 = {dof}"
+            r"$\chi^2 = {0:.2f}$".format(chi2)
+            + r"\n$\chi^2_r = {0:.3f}$".format(reduced_chi2)
+            + r"\n自由度 = {0}".format(dof)
         )
     else:
         stats_text = (
-            f"$\chi^2 = {chi2:.2f}$\n$\chi^2_r = {reduced_chi2:.3f}$\nDOF = {dof}"
+            r"$\chi^2 = {0:.2f}$".format(chi2)
+            + r"\n$\chi^2_r = {0:.3f}$".format(reduced_chi2)
+            + r"\nDOF = {0}".format(dof)
         )
 
     props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)

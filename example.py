@@ -129,43 +129,6 @@ def main():
     print(f"自由度: {fit_stats['dof']}")
     print(f"p值: {fit_stats['p_value']:.4f}")
 
-    print("\n生成图表和HTML报告...")
-    # 创建可视化图表
-    figure_files = create_plots(
-        y,
-        ysigma,
-        templates,
-        templates_sigma,
-        results,
-        fit_stats,
-        output_dir=output_dir,
-        interactive=config.INTERACTIVE_PLOTS,
-    )
-
-    # 生成HTML报告
-    if config.HTML_REPORT:
-        html_file = generate_html_report(
-            y,
-            ysigma,
-            templates,
-            templates_sigma,
-            results,
-            fit_stats,
-            figure_files,
-            template_dir=config.TEMPLATE_DIR,
-            output_dir=output_dir,
-            interactive=config.INTERACTIVE_PLOTS,
-        )
-        print(f"HTML报告已生成: {html_file}")
-
-    # 恢复原始配置
-    config.TARGET_SPECTRUM = original_target
-    config.TEMPLATE_SPECTRA = original_templates
-    config.NSTEPS = original_nsteps
-    config.BURNIN = original_burnin
-
-    print(f"\n完成! 结果已保存至 {output_dir}")
-
     print("\n使用配置文件运行主脚本的命令:")
     print("python mtmcmc.py")
 

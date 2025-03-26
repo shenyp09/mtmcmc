@@ -28,7 +28,7 @@ def generate_html_report(
     templates_sigma,
     results,
     fit_stats,
-    figure_files,
+    figure_files={},  # 这个参数现在可以忽略，保留是为了向后兼容
     template_dir=None,
     output_dir="results",
     interactive=True,
@@ -44,7 +44,7 @@ def generate_html_report(
         templates_sigma (list): 模板能谱标准差列表
         results (dict): MCMC分析结果
         fit_stats (dict): 拟合统计量
-        figure_files (dict): 图表文件路径字典
+        figure_files (dict): 图表文件路径字典，可以为空字典，已被忽略
         template_dir (str): HTML模板目录，如果为None则使用内置模板
         output_dir (str): 输出目录
         interactive (bool): 是否包含交互式图表

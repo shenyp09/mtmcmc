@@ -89,22 +89,9 @@ def main():
     # 计算拟合统计量
     fit_stats = calculate_fit_statistics(y, ysigma, templates, templates_sigma, results)
 
-    print("正在生成图表...")
-    # 创建可视化图表
-    figure_files = create_plots(
-        y,
-        ysigma,
-        templates,
-        templates_sigma,
-        results,
-        fit_stats,
-        output_dir=output_dir,
-        interactive=config.INTERACTIVE_PLOTS,
-    )
-
     # 生成HTML报告
     if config.HTML_REPORT:
-        print("正在生成HTML报告...")
+        print("正在生成HTML报告和图表...")
         html_files = generate_html_report(
             y,
             ysigma,
@@ -112,7 +99,6 @@ def main():
             templates_sigma,
             results,
             fit_stats,
-            figure_files,
             template_dir=config.TEMPLATE_DIR,
             output_dir=output_dir,
             interactive=config.INTERACTIVE_PLOTS,
