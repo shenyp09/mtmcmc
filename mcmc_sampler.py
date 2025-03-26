@@ -90,6 +90,8 @@ def run_mcmc(
     # 确保所有参数都是正数
     pos = np.abs(pos)
 
+    moves = [(emcee.moves.DESnookerMove(), 0.8), (emcee.moves.DEMove(), 0.2)]
+
     # 设置并行计算
     with Pool(processes=ncores) as pool:
         # 创建采样器
@@ -97,6 +99,7 @@ def run_mcmc(
             nwalkers,
             ndim,
             _log_prob_wrapper,
+            moves=moves,
             args=(y, ysigma, templates, templates_sigma, priors, default_prior),
             pool=pool,
         )

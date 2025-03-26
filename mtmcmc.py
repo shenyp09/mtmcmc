@@ -47,6 +47,9 @@ def main():
         target_data, template_data_list, error_handling=config.ERROR_HANDLING
     )
 
+    # 保存能量轴用于绘图
+    energy = target_data["energy"]
+
     # 设置模型参数
     ndim = len(template_data_list)  # 参数维度 = 模板数量
     nwalkers = config.NWALKERS
@@ -99,6 +102,7 @@ def main():
             templates_sigma,
             results,
             fit_stats,
+            energy=energy,
             template_dir=config.TEMPLATE_DIR,
             output_dir=output_dir,
             interactive=config.INTERACTIVE_PLOTS,
@@ -119,7 +123,7 @@ def main():
         median = results["medians"][i]
         lower = results["lower_bounds"][i]
         upper = results["upper_bounds"][i]
-        print(f"  {template_name}: {median:.4f} [{lower:.4f}, {upper:.4f}]")
+        print(f"  {template_name}: {median:.2e} [{lower:.2e}, {upper:.2e}]")
 
     return 0
 

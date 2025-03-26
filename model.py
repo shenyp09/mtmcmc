@@ -4,6 +4,19 @@
 贝叶斯模型定义模块
 ---------------
 定义模型先验分布、似然函数和后验概率函数
+
+先验分布类型:
+- uniform: 均匀分布，参数为min和max
+  例: {"type": "uniform", "params": {"min": 0.0, "max": 10.0}}
+
+- normal: 正态分布，参数为mu(均值)和sigma(标准差)
+  例: {"type": "normal", "params": {"mu": 1.0, "sigma": 0.5}}
+
+- lognormal: 对数正态分布，参数为mu(对数均值)和sigma(对数标准差)
+  例: {"type": "lognormal", "params": {"mu": 0.0, "sigma": 0.5}}
+
+- truncnorm: 截断正态分布，参数为min(下限)、max(上限)、mu(均值)和sigma(标准差)
+  例: {"type": "truncnorm", "params": {"min": 0.0, "max": 1.0, "mu": 0.5, "sigma": 0.2}}
 """
 
 import numpy as np
@@ -57,7 +70,7 @@ def log_prior_single(param, prior_type="uniform", prior_params=None):
 
     参数:
         param (float): 参数值
-        prior_type (str): 先验分布类型 {'uniform', 'normal', 'lognormal'}
+        prior_type (str): 先验分布类型 {'uniform', 'normal', 'lognormal', 'truncnorm'}
         prior_params (dict): 先验分布参数
 
     返回:
@@ -94,6 +107,23 @@ def log_prior_single(param, prior_type="uniform", prior_params=None):
         sigma = prior_params.get("sigma", 0.5)
 
         return stats.lognorm.logpdf(param, s=sigma, scale=np.exp(mu))
+
+    elif prior_type == "truncnorm":
+        # 截断正态先验，默认为均值0.5，标准差0.5，下限0，上限10
+        mu = prior_params.get("mu", 0.5)
+        sigma = prior_params.get("sigma", 0.5)
+        min_val = prior_params.get("min", 0.0)
+        max_val = prior_params.get("max", 10.0)
+
+        # 检查参数是否在范围内
+        if param < min_val or param > max_val:
+            return -np.inf
+
+        # 计算截断正态分布参数
+        a = (min_val - mu) / sigma
+        b = (max_val - mu) / sigma
+
+        return stats.truncnorm.logpdf(param, a, b, loc=mu, scale=sigma)
 
     # 默认情况
     return 0.0
@@ -222,6 +252,22 @@ def parse_prior_params(prior_type, prior_params_str):
     elif prior_type == "normal" or prior_type == "lognormal":
         if len(params) >= 2:
             return {"mu": float(params[0]), "sigma": float(params[1])}
+
+    elif prior_type == "truncnorm":
+        if len(params) >= 4:
+            return {
+                "min": float(params[0]),
+                "max": float(params[1]),
+                "mu": float(params[2]),
+                "sigma": float(params[3]),
+            }
+        elif len(params) >= 2:
+            # 如果只提供了min和max，使用范围中点作为均值
+            min_val = float(params[0])
+            max_val = float(params[1])
+            mu = (min_val + max_val) / 2
+            sigma = (max_val - min_val) / 4  # 默认使区间覆盖约95%置信区间
+            return {"min": min_val, "max": max_val, "mu": mu, "sigma": sigma}
 
     # 默认返回None，使用默认参数
     return None

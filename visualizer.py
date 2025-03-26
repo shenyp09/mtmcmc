@@ -56,6 +56,7 @@ def create_plots(
     output_dir="results",
     interactive=False,
     lang="zh",
+    energy=None,
 ):
     """
     创建所有图表
@@ -70,6 +71,7 @@ def create_plots(
         output_dir (str): 输出目录
         interactive (bool): 是否创建交互式图表
         lang (str): 语言，可选值："zh"(中文)或"en"(英文)
+        energy (array): 能量轴数据
 
     返回:
         dict: 图表文件路径字典
@@ -99,13 +101,21 @@ def create_plots(
     # 创建拟合结果图
     fit_fig_path = os.path.join(output_dir, f"fit_results{lang_suffix}.png")
     create_fit_plot(
-        y, ysigma, templates, templates_sigma, results, fit_stats, fit_fig_path, lang
+        y,
+        ysigma,
+        templates,
+        templates_sigma,
+        results,
+        fit_stats,
+        fit_fig_path,
+        lang,
+        energy,
     )
     figure_files["fit"] = fit_fig_path
 
     # 创建残差图
     residual_fig_path = os.path.join(output_dir, f"residuals{lang_suffix}.png")
-    create_residual_plot(fit_stats, residual_fig_path, lang)
+    create_residual_plot(fit_stats, residual_fig_path, lang, energy)
     figure_files["residual"] = residual_fig_path
 
     # 创建模板贡献图
@@ -145,6 +155,7 @@ def create_plots(
             fit_stats,
             interactive_fit_path,
             lang,
+            energy,
         )
         figure_files["interactive_fit"] = interactive_fit_path
 
@@ -241,7 +252,15 @@ def create_trace_plot(results, output_path, lang="zh"):
 
 
 def create_fit_plot(
-    y, ysigma, templates, templates_sigma, results, fit_stats, output_path, lang="zh"
+    y,
+    ysigma,
+    templates,
+    templates_sigma,
+    results,
+    fit_stats,
+    output_path,
+    lang="zh",
+    energy=None,
 ):
     """
     创建拟合结果图
@@ -255,6 +274,7 @@ def create_fit_plot(
         fit_stats (dict): 拟合统计量
         output_path (str): 输出文件路径
         lang (str): 语言，可选值："zh"(中文)或"en"(英文)
+        energy (array): 能量轴数据
     """
     # 获取参数最佳估计值
     map_params = results["map_estimate"]
@@ -262,7 +282,12 @@ def create_fit_plot(
     # 获取预测值和残差
     prediction = fit_stats["prediction"]
     residuals = fit_stats["residuals"]
-    x = np.arange(len(y))
+
+    # 使用能量轴或默认的索引值
+    if energy is not None:
+        x = energy
+    else:
+        x = np.arange(len(y))
 
     # 创建图表
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -302,11 +327,11 @@ def create_fit_plot(
     # 设置图表属性
     if lang == "zh":
         ax.set_title("拟合结果")
-        ax.set_xlabel("通道")
+        ax.set_xlabel("能量" if energy is not None else "通道")
         ax.set_ylabel("计数")
     else:
         ax.set_title("Fit Results")
-        ax.set_xlabel("Channel")
+        ax.set_xlabel("Energy" if energy is not None else "Channel")
         ax.set_ylabel("Counts")
 
     ax.legend()
@@ -348,7 +373,7 @@ def create_fit_plot(
     plt.close()
 
 
-def create_residual_plot(fit_stats, output_path, lang="zh"):
+def create_residual_plot(fit_stats, output_path, lang="zh", energy=None):
     """
     创建残差图
 
@@ -356,11 +381,17 @@ def create_residual_plot(fit_stats, output_path, lang="zh"):
         fit_stats (dict): 拟合统计量
         output_path (str): 输出文件路径
         lang (str): 语言，可选值："zh"(中文)或"en"(英文)
+        energy (array): 能量轴数据
     """
     # 获取残差和归一化残差
     residuals = fit_stats["residuals"]
     normalized_residuals = fit_stats["normalized_residuals"]
-    x = np.arange(len(residuals))
+
+    # 使用能量轴或默认的索引值
+    if energy is not None:
+        x = energy
+    else:
+        x = np.arange(len(residuals))
 
     # 创建图表
     fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
@@ -385,11 +416,11 @@ def create_residual_plot(fit_stats, output_path, lang="zh"):
     axes[1].axhline(y=-1, color="r", linestyle="--")
 
     if lang == "zh":
-        axes[1].set_xlabel("通道")
+        axes[1].set_xlabel("能量" if energy is not None else "通道")
         axes[1].set_ylabel("归一化残差")
         title1 = "归一化残差 (残差/σ)"
     else:
-        axes[1].set_xlabel("Channel")
+        axes[1].set_xlabel("Energy" if energy is not None else "Channel")
         axes[1].set_ylabel("Normalized Residuals")
         title1 = "Normalized Residuals (Residuals/σ)"
     axes[1].set_title(title1)
@@ -622,7 +653,15 @@ def create_interactive_corner(results, output_path, lang="zh"):
 
 
 def create_interactive_fit(
-    y, ysigma, templates, templates_sigma, results, fit_stats, output_path, lang="zh"
+    y,
+    ysigma,
+    templates,
+    templates_sigma,
+    results,
+    fit_stats,
+    output_path,
+    lang="zh",
+    energy=None,
 ):
     """
     创建交互式拟合结果图
@@ -636,6 +675,7 @@ def create_interactive_fit(
         fit_stats (dict): 拟合统计量
         output_path (str): 输出文件路径
         lang (str): 语言，可选值："zh"(中文)或"en"(英文)
+        energy (array): 能量轴数据
     """
     if not PLOTLY_AVAILABLE:
         print("警告: Plotly不可用，跳过交互式图表创建")
@@ -648,7 +688,12 @@ def create_interactive_fit(
     prediction = fit_stats["prediction"]
     residuals = fit_stats["residuals"]
     normalized_residuals = fit_stats["normalized_residuals"]
-    x = np.arange(len(y))
+
+    # 使用能量轴或默认的索引值
+    if energy is not None:
+        x = energy
+    else:
+        x = np.arange(len(y))
 
     # 创建子图
     fig = make_subplots(
@@ -800,12 +845,12 @@ def create_interactive_fit(
 
     if lang == "zh":
         stats_text = f"<b>拟合统计:</b><br>χ² = {chi2:.2f}<br>简化χ² = {reduced_chi2:.3f}<br>自由度 = {dof}"
-        x_label = "通道"
+        x_label = "能量" if energy is not None else "通道"
         y_labels = ["计数", "残差", "归一化残差"]
         title = "拟合结果与残差分析"
     else:
         stats_text = f"<b>Fit Statistics:</b><br>χ² = {chi2:.2f}<br>Reduced χ² = {reduced_chi2:.3f}<br>DOF = {dof}"
-        x_label = "Channel"
+        x_label = "Energy" if energy is not None else "Channel"
         y_labels = ["Counts", "Residuals", "Normalized Residuals"]
         title = "Fit Results and Residual Analysis"
 

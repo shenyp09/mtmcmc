@@ -33,6 +33,7 @@ def generate_html_report(
     output_dir="results",
     interactive=True,
     languages=["zh"],
+    energy=None,  # 添加能量轴参数
 ):
     """
     生成HTML报告
@@ -49,6 +50,7 @@ def generate_html_report(
         output_dir (str): 输出目录
         interactive (bool): 是否包含交互式图表
         languages (list): 要生成的报告语言列表，可选值：["zh", "en"]或["zh"]或["en"]
+        energy (array): 能量轴数据
 
     返回:
         dict: 各语言HTML报告文件路径
@@ -83,6 +85,7 @@ def generate_html_report(
             output_dir=lang_dir,
             interactive=interactive,
             lang=lang,
+            energy=energy,  # 传递能量轴
         )
 
         # 生成报告数据
@@ -96,6 +99,7 @@ def generate_html_report(
             lang_figure_files,
             interactive,
             lang,
+            energy,  # 传递能量轴
         )
 
         # 获取HTML模板
@@ -124,6 +128,7 @@ def prepare_report_data(
     figure_files,
     interactive,
     lang="zh",
+    energy=None,
 ):
     """
     准备报告数据
@@ -138,6 +143,7 @@ def prepare_report_data(
         figure_files (dict): 图表文件路径字典
         interactive (bool): 是否包含交互式图表
         lang (str): 语言，可选值："zh"(中文)或"en"(英文)
+        energy (array): 能量轴数据
 
     返回:
         dict: 报告数据字典
@@ -145,15 +151,35 @@ def prepare_report_data(
     # 获取参数信息
     params_info = []
     for i in range(len(results["medians"])):
+        # 计算不同置信区间
+        median = results["medians"][i]
+        mean = results["means"][i]
+        std = results["stds"][i]
+        map_val = results["map_estimate"][i]
+        variance = std**2
+
+        # 使用样本计算不同置信水平的界限
+        samples = results["samples"][:, i]
+        lower68, upper68 = np.percentile(samples, [16, 84])
+        lower95, upper95 = np.percentile(samples, [2.5, 97.5])
+        lower997, upper997 = np.percentile(samples, [0.15, 99.85])
+
         params_info.append(
             {
                 "index": i + 1,
-                "median": results["medians"][i],
-                "lower": results["lower_bounds"][i],
-                "upper": results["upper_bounds"][i],
-                "mean": results["means"][i],
-                "std": results["stds"][i],
-                "map": results["map_estimate"][i],
+                "median": median,
+                "lower": lower68,  # 68% CL下限
+                "upper": upper68,  # 68% CL上限
+                "mean": mean,
+                "std": std,
+                "variance": variance,
+                "map": map_val,
+                "error_minus": median - lower68,  # 误差(-)
+                "error_plus": upper68 - median,  # 误差(+)
+                "lower95": lower95,  # 95% CL下限
+                "upper95": upper95,  # 95% CL上限
+                "lower997": lower997,  # 99.7% CL下限
+                "upper997": upper997,  # 99.7% CL上限
             }
         )
 
@@ -364,6 +390,7 @@ def get_html_template(template_dir=None, lang="zh"):
                 <button class="nav-link active" id="nav-summary-tab" data-bs-toggle="tab" data-bs-target="#nav-summary" type="button" role="tab" aria-controls="nav-summary" aria-selected="true">Summary</button>
                 <button class="nav-link" id="nav-posterior-tab" data-bs-toggle="tab" data-bs-target="#nav-posterior" type="button" role="tab" aria-controls="nav-posterior" aria-selected="false">Posterior Distribution</button>
                 <button class="nav-link" id="nav-fit-tab" data-bs-toggle="tab" data-bs-target="#nav-fit" type="button" role="tab" aria-controls="nav-fit" aria-selected="false">Fit Results</button>
+                <button class="nav-link" id="nav-param-tab" data-bs-toggle="tab" data-bs-target="#nav-param" type="button" role="tab" aria-controls="nav-param" aria-selected="false">Parameter Statistics</button>
                 <button class="nav-link" id="nav-error-tab" data-bs-toggle="tab" data-bs-target="#nav-error" type="button" role="tab" aria-controls="nav-error" aria-selected="false">Error Analysis</button>
                 <button class="nav-link" id="nav-data-tab" data-bs-toggle="tab" data-bs-target="#nav-data" type="button" role="tab" aria-controls="nav-data" aria-selected="false">Data Table</button>
                 {% if interactive_plots %}
@@ -412,9 +439,9 @@ def get_html_template(template_dir=None, lang="zh"):
                                 <div class="col-md-6">
                                     <div class="param-box">
                                         <h5>Parameter {{ param.index }}</h5>
-                                        <p>MAP Estimate: {{ param.map|round(4) }}</p>
-                                        <p>Median: {{ param.median|round(4) }}</p>
-                                        <p>68% Confidence Interval: [{{ param.lower|round(4) }}, {{ param.upper|round(4) }}]</p>
+                                        <p>MAP Estimate: {{ param.map|sci2 }}</p>
+                                        <p>Median: {{ param.median|sci2 }}</p>
+                                        <p>68% Confidence Interval: [{{ param.lower|sci2 }}, {{ param.upper|sci2 }}]</p>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -463,6 +490,49 @@ def get_html_template(template_dir=None, lang="zh"):
                 </div>
             </div>
             
+            <!-- Parameter Statistics Tab -->
+            <div class="tab-pane fade" id="nav-param" role="tabpanel" aria-labelledby="nav-param-tab">
+                <div class="section">
+                    <h2>Parameter Statistics</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Median</th>
+                                    <th>Mean</th>
+                                    <th>Standard Deviation</th>
+                                    <th>Variance</th>
+                                    <th>MAP Estimate</th>
+                                    <th>68% Confidence Interval</th>
+                                    <th>95% Confidence Interval</th>
+                                    <th>99.7% Confidence Interval</th>
+                                    <th>Error (-)</th>
+                                    <th>Error (+)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for param in params_info %}
+                                <tr>
+                                    <td>{{ param.index }}</td>
+                                    <td>{{ param.median|sci2 }}</td>
+                                    <td>{{ param.mean|sci2 }}</td>
+                                    <td>{{ param.std|sci2 }}</td>
+                                    <td>{{ param.variance|sci2 }}</td>
+                                    <td>{{ param.map|sci2 }}</td>
+                                    <td>[{{ param.lower|sci2 }}, {{ param.upper|sci2 }}]</td>
+                                    <td>[{{ param.lower95|sci2 }}, {{ param.upper95|sci2 }}]</td>
+                                    <td>[{{ param.lower997|sci2 }}, {{ param.upper997|sci2 }}]</td>
+                                    <td>{{ param.error_minus|sci2 }}</td>
+                                    <td>{{ param.error_plus|sci2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Error Analysis Tab -->
             <div class="tab-pane fade" id="nav-error" role="tabpanel" aria-labelledby="nav-error-tab">
                 <div class="section">
@@ -484,7 +554,7 @@ def get_html_template(template_dir=None, lang="zh"):
                             <h4>Template Spectra Error Contribution</h4>
                             <ul>
                                 {% for tc in error_analysis.template_contributions %}
-                                <li>Template {{ tc.index+1 }} (Weight: {{ tc.weight|round(4) }}): Average {{ tc.mean_contribution|round(2) }}%, Maximum {{ tc.max_contribution|round(2) }}%</li>
+                                <li>Template {{ tc.index+1 }} (Weight: {{ tc.weight|sci2 }}): Average {{ tc.mean_contribution|round(2) }}%, Maximum {{ tc.max_contribution|round(2) }}%</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -539,8 +609,8 @@ def get_html_template(template_dir=None, lang="zh"):
                                 <tbody>
                                     {% for tc in template_contributions %}
                                     <tr>
-                                        <td>Template {{ tc.index+1 }}</td>
-                                        <td>{{ tc.weight|round(4) }}</td>
+                                        <td>模板 {{ tc.index+1 }}</td>
+                                        <td>{{ tc.weight|sci2 }}</td>
                                         <td>{{ tc.counts|round(2) }}</td>
                                         <td>{{ tc.percentage|round(2) }}%</td>
                                     </tr>
@@ -637,6 +707,7 @@ def get_html_template(template_dir=None, lang="zh"):
                 <button class="nav-link active" id="nav-summary-tab" data-bs-toggle="tab" data-bs-target="#nav-summary" type="button" role="tab" aria-controls="nav-summary" aria-selected="true">摘要</button>
                 <button class="nav-link" id="nav-posterior-tab" data-bs-toggle="tab" data-bs-target="#nav-posterior" type="button" role="tab" aria-controls="nav-posterior" aria-selected="false">后验分布</button>
                 <button class="nav-link" id="nav-fit-tab" data-bs-toggle="tab" data-bs-target="#nav-fit" type="button" role="tab" aria-controls="nav-fit" aria-selected="false">拟合结果</button>
+                <button class="nav-link" id="nav-param-tab" data-bs-toggle="tab" data-bs-target="#nav-param" type="button" role="tab" aria-controls="nav-param" aria-selected="false">参数统计</button>
                 <button class="nav-link" id="nav-error-tab" data-bs-toggle="tab" data-bs-target="#nav-error" type="button" role="tab" aria-controls="nav-error" aria-selected="false">误差分析</button>
                 <button class="nav-link" id="nav-data-tab" data-bs-toggle="tab" data-bs-target="#nav-data" type="button" role="tab" aria-controls="nav-data" aria-selected="false">数据表</button>
                 {% if interactive_plots %}
@@ -685,9 +756,9 @@ def get_html_template(template_dir=None, lang="zh"):
                                 <div class="col-md-6">
                                     <div class="param-box">
                                         <h5>参数 {{ param.index }}</h5>
-                                        <p>MAP估计: {{ param.map|round(4) }}</p>
-                                        <p>中位数: {{ param.median|round(4) }}</p>
-                                        <p>68%置信区间: [{{ param.lower|round(4) }}, {{ param.upper|round(4) }}]</p>
+                                        <p>MAP估计: {{ param.map|sci2 }}</p>
+                                        <p>中位数: {{ param.median|sci2 }}</p>
+                                        <p>68%置信区间: [{{ param.lower|sci2 }}, {{ param.upper|sci2 }}]</p>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -736,6 +807,49 @@ def get_html_template(template_dir=None, lang="zh"):
                 </div>
             </div>
             
+            <!-- 参数统计标签页 -->
+            <div class="tab-pane fade" id="nav-param" role="tabpanel" aria-labelledby="nav-param-tab">
+                <div class="section">
+                    <h2>参数统计</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>参数</th>
+                                    <th>中位数</th>
+                                    <th>均值</th>
+                                    <th>标准差</th>
+                                    <th>方差</th>
+                                    <th>MAP估计</th>
+                                    <th>68%置信区间</th>
+                                    <th>95%置信区间</th>
+                                    <th>99.7%置信区间</th>
+                                    <th>误差(-)</th>
+                                    <th>误差(+)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for param in params_info %}
+                                <tr>
+                                    <td>{{ param.index }}</td>
+                                    <td>{{ param.median|sci2 }}</td>
+                                    <td>{{ param.mean|sci2 }}</td>
+                                    <td>{{ param.std|sci2 }}</td>
+                                    <td>{{ param.variance|sci2 }}</td>
+                                    <td>{{ param.map|sci2 }}</td>
+                                    <td>[{{ param.lower|sci2 }}, {{ param.upper|sci2 }}]</td>
+                                    <td>[{{ param.lower95|sci2 }}, {{ param.upper95|sci2 }}]</td>
+                                    <td>[{{ param.lower997|sci2 }}, {{ param.upper997|sci2 }}]</td>
+                                    <td>{{ param.error_minus|sci2 }}</td>
+                                    <td>{{ param.error_plus|sci2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 误差分析标签页 -->
             <div class="tab-pane fade" id="nav-error" role="tabpanel" aria-labelledby="nav-error-tab">
                 <div class="section">
@@ -757,7 +871,7 @@ def get_html_template(template_dir=None, lang="zh"):
                             <h4>模板谱误差贡献</h4>
                             <ul>
                                 {% for tc in error_analysis.template_contributions %}
-                                <li>模板 {{ tc.index+1 }} (权重: {{ tc.weight|round(4) }}): 平均 {{ tc.mean_contribution|round(2) }}%, 最大 {{ tc.max_contribution|round(2) }}%</li>
+                                <li>模板 {{ tc.index+1 }} (权重: {{ tc.weight|sci2 }}): 平均 {{ tc.mean_contribution|round(2) }}%, 最大 {{ tc.max_contribution|round(2) }}%</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -813,7 +927,7 @@ def get_html_template(template_dir=None, lang="zh"):
                                     {% for tc in template_contributions %}
                                     <tr>
                                         <td>模板 {{ tc.index+1 }}</td>
-                                        <td>{{ tc.weight|round(4) }}</td>
+                                        <td>{{ tc.weight|sci2 }}</td>
                                         <td>{{ tc.counts|round(2) }}</td>
                                         <td>{{ tc.percentage|round(2) }}%</td>
                                     </tr>
@@ -869,6 +983,22 @@ def get_html_template(template_dir=None, lang="zh"):
 
 def render_html(template_text, report_data):
     """渲染HTML模板"""
-    template = jinja2.Template(template_text)
+    # 创建Jinja2环境并添加科学计数法过滤器
+    env = jinja2.Environment()
+
+    # 添加科学计数法过滤器
+    def sci_format(value, precision=4):
+        """格式化为科学计数法"""
+        return f"{value:.{precision}e}"
+
+    # 添加两位有效数字的科学计数法过滤器
+    def sci_format2(value):
+        """格式化为两位有效数字的科学计数法"""
+        return f"{value:.2e}"
+
+    env.filters["sci"] = sci_format
+    env.filters["sci2"] = sci_format2
+
+    template = env.from_string(template_text)
     html_content = template.render(**report_data)
     return html_content
