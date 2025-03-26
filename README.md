@@ -1,173 +1,121 @@
 # Multi Template MCMC贝叶斯分析
 
-用于能谱拟合的多模板MCMC贝叶斯分析算法，支持考虑多种误差源和生成HTML报告。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-## 功能特点
+多模板MCMC贝叶斯分析是一个用于能谱拟合的Python工具包，它利用马尔可夫链蒙特卡洛（MCMC）方法进行贝叶斯分析，能够同时拟合多个模板谱。
 
-- 多模板能谱拟合：使用MCMC方法拟合由多个模板线性组合的能谱
-- 综合误差处理：同时考虑目标能谱和模板能谱的测量误差
-- 多种先验分布：支持为每个模板单独设置不同的先验分布（均匀分布、正态分布和对数正态分布）
-- 统计分析：计算参数估计值、置信区间、拟合优度等统计量
-- 可视化：生成各种静态图表和交互式图表
-- HTML报告：自动生成包含分析结果的HTML报告
+## 特性
 
-## 安装依赖
+- 支持多模板能谱的同时拟合
+- 基于emcee的高效MCMC采样
+- 多种先验分布选择（均匀分布、正态分布、对数正态分布等）
+- 全面的后验分布与拟合结果分析
+- 生成美观的可视化图表
+- 支持中英文双语HTML报告生成
+- 交互式图表支持（使用Plotly）
+- 自动时间戳输出目录
+
+## 安装
+
+1. 克隆仓库：
 
 ```bash
-pip install numpy scipy matplotlib seaborn emcee corner jinja2 plotly
+git clone https://github.com/shenyp09/mtmcmc.git
+cd mtmcmc
+```
+
+2. 安装依赖：
+
+```bash
+pip install -r requirements.txt
 ```
 
 ## 使用方法
 
 ### 基本用法
 
+1. 编辑`config.py`文件，设置数据路径、MCMC参数和其他选项
+2. 运行主程序：
+
 ```bash
-# 编辑config.py配置文件，设置所需参数
 python mtmcmc.py
 ```
 
-### 配置文件
+### 使用示例脚本
 
-程序使用`config.py`文件进行配置，主要配置项包括：
-
-1. 数据路径配置
-   ```python
-   # 目标能谱数据文件路径
-   TARGET_SPECTRUM = "data/target.txt"
-   
-   # 模板能谱数据文件路径列表
-   TEMPLATE_SPECTRA = [
-       "data/template1.txt",
-       "data/template2.txt",
-       "data/template3.txt",
-   ]
-   ```
-
-2. MCMC参数
-   ```python
-   # MCMC walkers数量
-   NWALKERS = 32
-   
-   # MCMC采样步数
-   NSTEPS = 5000
-   
-   # MCMC预热步数
-   BURNIN = 1000
-   
-   # 是否显示进度条
-   PROGRESS = True
-   
-   # 使用的CPU核心数，None表示使用全部可用核心
-   NCORES = None
-   ```
-
-3. 先验分布配置
-   ```python
-   # 各模板的先验分布设置，每个模板可以设置不同的先验分布
-   PRIORS = [
-       # 模板1的先验分布
-       {
-           "type": "uniform",
-           "params": {"min": 0.0, "max": 10.0}
-       },
-       # 模板2的先验分布
-       {
-           "type": "normal",
-           "params": {"mu": 1.0, "sigma": 0.5}
-       },
-       # 模板3的先验分布
-       {
-           "type": "lognormal",
-           "params": {"mu": 0.0, "sigma": 0.5}
-       },
-   ]
-   
-   # 如果PRIORS中没有为每个模板指定先验，则使用以下默认先验
-   DEFAULT_PRIOR = {
-       "type": "uniform",
-       "params": {"min": 0.0, "max": 10.0}
-   }
-   ```
-
-4. 误差处理和HTML报告选项
-   ```python
-   # 误差处理方式: 'target', 'template', 'both'
-   ERROR_HANDLING = "both"
-   
-   # 是否生成HTML报告
-   HTML_REPORT = True
-   
-   # HTML报告中是否包含交互式图表
-   INTERACTIVE_PLOTS = True
-   ```
-
-## 数据格式
-
-输入文件应为ASCII文本文件，每行包含三个值：能量、计数值和标准差。
-所有能谱(目标和模板)必须具有相同的能量轴(相同的能量点和能量范围)。
-
-示例：
-```
-1.0 100.5 10.0
-2.0 95.2  9.8
-3.0 85.7  9.3
-...
-```
-
-## 输出结果
-
-程序将在指定的输出目录中生成以下内容：
-
-- 参数后验分布图
-- MCMC链迹图
-- 拟合结果图
-- 残差图
-- 模板贡献饼图
-- 误差贡献分析图
-- HTML报告(如果启用)
-- 交互式图表(如果启用)
-
-## 示例
-
-运行示例脚本，将生成合成数据并进行分析：
+项目包含一个示例脚本，可以生成合成数据并运行分析：
 
 ```bash
 python example.py
 ```
 
-示例脚本会创建一个`example_config.py`文件，供您参考如何配置不同的先验分布和其他参数。
+## 配置参数
 
-## 自定义先验分布
+编辑`config.py`文件可以配置以下参数：
 
-为每个模板设置不同的先验分布：
+### 数据路径配置
+- `TARGET_SPECTRUM`: 目标能谱数据文件路径
+- `TEMPLATE_SPECTRA`: 模板能谱数据文件路径列表
 
-```python
-# config.py
-PRIORS = [
-    # 均匀分布先验
-    {
-        "type": "uniform",
-        "params": {"min": 0.0, "max": 5.0}
-    },
-    # 正态分布先验
-    {
-        "type": "normal",
-        "params": {"mu": 1.0, "sigma": 0.5}
-    },
-    # 对数正态分布先验
-    {
-        "type": "lognormal",
-        "params": {"mu": 0.0, "sigma": 0.5}
-    },
-]
+### 输出配置
+- `OUTPUT_DIR`: 结果输出目录
+- `ADD_TIMESTAMP`: 是否在输出目录中添加时间戳子目录
+
+### MCMC参数配置
+- `NWALKERS`: MCMC walkers数量
+- `NSTEPS`: MCMC采样步数
+- `BURNIN`: MCMC预热步数
+- `PROGRESS`: 是否显示进度条
+- `NCORES`: 使用的CPU核心数，None表示使用全部可用核心
+
+### 先验分布配置
+- `PRIORS`: 各模板的先验分布设置
+- `DEFAULT_PRIOR`: 默认先验分布设置
+
+### 误差处理和HTML报告选项
+- `ERROR_HANDLING`: 误差处理方式
+- `HTML_REPORT`: 是否生成HTML报告
+- `INTERACTIVE_PLOTS`: HTML报告中是否包含交互式图表
+- `TEMPLATE_DIR`: HTML模板目录
+- `HTML_LANGUAGES`: HTML报告语言设置，可选值: ["zh"], ["en"], ["zh", "en"]
+
+## 模块结构
+
+- `mtmcmc.py`: 主程序
+- `data_loader.py`: 数据加载与预处理模块
+- `model.py`: 模型定义模块
+- `mcmc_sampler.py`: MCMC采样模块
+- `analyzer.py`: 结果分析模块
+- `visualizer.py`: 可视化模块
+- `html_reporter.py`: HTML报告生成模块
+- `config.py`: 配置文件
+- `example.py`: 示例脚本
+
+## 数据格式
+
+输入数据文件应为文本格式，每行三列：能量、计数、误差。例如：
+
+```
+0.0 10.5 1.2
+0.1 11.2 1.3
+...
 ```
 
-## 开发者信息
+## 结果
 
-如需扩展功能，可以修改以下文件：
+分析结果将保存在输出目录中，包括：
 
-- `model.py` - 贝叶斯模型定义，包括先验、似然和后验函数
-- `mcmc_sampler.py` - MCMC采样实现
-- `analyzer.py` - 结果分析和统计计算
-- `visualizer.py` - 图表生成和可视化
-- `html_reporter.py` - HTML报告生成 
+- 模板权重的后验分布
+- 拟合结果与残差分析
+- 模板贡献分析
+- 误差贡献分析
+- 综合HTML报告
+
+## 许可证
+
+本项目采用MIT许可证。详见[LICENSE](LICENSE)文件。
+
+## 贡献
+
+欢迎贡献代码、报告问题或提出改进建议。 
