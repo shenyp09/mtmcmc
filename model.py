@@ -1,9 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-贝叶斯模型定义模块
----------------
-定义模型先验分布、似然函数和后验概率函数
+MIT License
+
+Copyright (c) 2023-2024 MTMCMC Authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+模型模块
+-------
+定义多模板拟合的模型函数和先验分布
 
 先验分布类型:
 - uniform: 均匀分布，参数为min和max
