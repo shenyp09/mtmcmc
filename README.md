@@ -66,11 +66,68 @@ python example.py
 - `ADD_TIMESTAMP`: 是否在输出目录中添加时间戳子目录
 
 ### MCMC参数配置
-- `NWALKERS`: MCMC walkers数量
-- `NSTEPS`: MCMC采样步数
-- `BURNIN`: MCMC预热步数
-- `PROGRESS`: 是否显示进度条
-- `NCORES`: 使用的CPU核心数，None表示使用全部可用核心
+
+在`config.py`中，您可以配置以下MCMC相关参数：
+
+```python
+# MCMC walkers数量
+NWALKERS = 32
+
+# MCMC采样步数
+NSTEPS = 5000
+
+# MCMC预热步数
+BURNIN = 1000
+
+# 是否显示进度条
+PROGRESS = True
+
+# 使用的CPU核心数，None表示使用全部可用核心
+NCORES = None
+
+# MCMC移动策略配置
+# 每个元素是一个元组 (move, weight)，weight表示该移动策略的使用权重
+# 可用的移动策略:
+# - emcee.moves.DESnookerMove(): 差分进化Snooker移动
+# - emcee.moves.DEMove(): 差分进化移动
+# - emcee.moves.GaussianMove(): 高斯移动
+# - emcee.moves.KDEMove(): 核密度估计移动
+# - emcee.moves.StretchMove(): 伸展移动
+MCMC_MOVES = [
+    (emcee.moves.DESnookerMove(), 0.8),  # 使用80%的Snooker移动
+    (emcee.moves.DEMove(), 0.2),          # 使用20%的差分进化移动
+]
+```
+
+MCMC移动策略（moves）是控制采样器如何探索参数空间的重要设置。程序提供了多种移动策略供选择：
+
+1. **DESnookerMove**: 差分进化Snooker移动
+   - 优点：对高维参数空间有很好的探索能力
+   - 适用：复杂的高维参数空间
+
+2. **DEMove**: 差分进化移动
+   - 优点：结合了多个walkers的信息
+   - 适用：需要walkers之间协作的采样
+
+3. **GaussianMove**: 高斯移动
+   - 优点：简单且高效
+   - 适用：参数空间较为简单的情况
+
+4. **KDEMove**: 核密度估计移动
+   - 优点：能够适应复杂的后验分布
+   - 适用：多峰分布或非高斯分布
+
+5. **StretchMove**: 伸展移动
+   - 优点：计算开销小
+   - 适用：需要快速采样的情况
+
+您可以通过调整`MCMC_MOVES`列表来配置不同的移动策略组合。每个移动策略都有一个权重值，表示该策略被使用的概率。权重值应该满足：
+
+```python
+sum(weight for _, weight in MCMC_MOVES) == 1.0
+```
+
+默认配置使用80%的Snooker移动和20%的差分进化移动，这种组合在大多数情况下都能提供良好的采样效果。您可以根据具体问题调整这些权重或添加其他移动策略。
 
 ### 先验分布配置
 - `PRIORS`: 各模板的先验分布设置，支持以下分布类型：

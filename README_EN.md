@@ -66,11 +66,68 @@ Edit the `config.py` file to configure the following parameters:
 - `ADD_TIMESTAMP`: Whether to add a timestamp subdirectory in the output directory
 
 ### MCMC Parameter Configuration
-- `NWALKERS`: Number of MCMC walkers
-- `NSTEPS`: Number of MCMC sampling steps
-- `BURNIN`: Number of MCMC burn-in steps
-- `PROGRESS`: Whether to display a progress bar
-- `NCORES`: Number of CPU cores to use, None means use all available cores
+
+In `config.py`, you can configure the following MCMC-related parameters:
+
+```python
+# Number of MCMC walkers
+NWALKERS = 32
+
+# Number of MCMC steps
+NSTEPS = 5000
+
+# Number of burn-in steps
+BURNIN = 1000
+
+# Whether to show progress bar
+PROGRESS = True
+
+# Number of CPU cores to use, None means use all available cores
+NCORES = None
+
+# MCMC move strategy configuration
+# Each element is a tuple (move, weight), where weight represents the probability of using this move
+# Available move strategies:
+# - emcee.moves.DESnookerMove(): Differential Evolution Snooker move
+# - emcee.moves.DEMove(): Differential Evolution move
+# - emcee.moves.GaussianMove(): Gaussian move
+# - emcee.moves.KDEMove(): Kernel Density Estimation move
+# - emcee.moves.StretchMove(): Stretch move
+MCMC_MOVES = [
+    (emcee.moves.DESnookerMove(), 0.8),  # Use 80% Snooker move
+    (emcee.moves.DEMove(), 0.2),          # Use 20% Differential Evolution move
+]
+```
+
+MCMC move strategies (moves) are crucial settings that control how the sampler explores the parameter space. The program provides several move strategies to choose from:
+
+1. **DESnookerMove**: Differential Evolution Snooker move
+   - Advantages: Excellent exploration capability in high-dimensional parameter spaces
+   - Suitable for: Complex high-dimensional parameter spaces
+
+2. **DEMove**: Differential Evolution move
+   - Advantages: Combines information from multiple walkers
+   - Suitable for: Sampling requiring walker collaboration
+
+3. **GaussianMove**: Gaussian move
+   - Advantages: Simple and efficient
+   - Suitable for: Simple parameter spaces
+
+4. **KDEMove**: Kernel Density Estimation move
+   - Advantages: Can adapt to complex posterior distributions
+   - Suitable for: Multi-modal or non-Gaussian distributions
+
+5. **StretchMove**: Stretch move
+   - Advantages: Low computational overhead
+   - Suitable for: Cases requiring fast sampling
+
+You can configure different combinations of move strategies by adjusting the `MCMC_MOVES` list. Each move strategy has a weight value that represents the probability of using that strategy. The weights should satisfy:
+
+```python
+sum(weight for _, weight in MCMC_MOVES) == 1.0
+```
+
+The default configuration uses 80% Snooker move and 20% Differential Evolution move, which provides good sampling performance in most cases. You can adjust these weights or add other move strategies based on your specific problem.
 
 ### Prior Distribution Configuration
 - `PRIORS`: Prior distribution settings for each template, supporting the following distribution types:
