@@ -18,7 +18,6 @@ Multi Template MCMC Bayesian Analysis is a Python package for spectral fitting u
 - Interactive chart support (using Plotly)
 - Automatic timestamp output directories
 - Detailed parameter statistics analysis (mean, median, variance, various confidence intervals)
-- Scientific notation display for fitting parameters
 
 ## Installation
 

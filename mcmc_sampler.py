@@ -104,7 +104,10 @@ def run_mcmc(
     # 确保所有参数都是正数
     pos = np.abs(pos)
 
-    moves = [(emcee.moves.DESnookerMove(), 0.8), (emcee.moves.DEMove(), 0.2)]
+    # 导入配置
+    import config
+
+    moves = config.MCMC_MOVES
 
     # 设置并行计算
     with Pool(processes=ncores) as pool:

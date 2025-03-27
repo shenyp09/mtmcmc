@@ -747,7 +747,7 @@ def get_html_template(template_dir=None, lang="zh"):
                                 <h4>拟合统计</h4>
                                 <ul>
                                     <li>卡方值: {{ fit_stats.chi_square|round(2) }}</li>
-                                    <li>简化卡方: {{ fit_stats.reduced_chi_square|round(3) }}</li>
+                                    <li>约化卡方: {{ fit_stats.reduced_chi_square|round(3) }}</li>
                                     <li>自由度: {{ fit_stats.dof }}</li>
                                     <li>p值: {{ fit_stats.p_value|round(4) }}</li>
                                     <li>BIC: {{ fit_stats.bic|round(2) }}</li>

@@ -18,6 +18,8 @@ copies or substantial portions of the Software.
 多模板MCMC贝叶斯分析配置文件
 """
 
+import emcee
+
 #############################################
 # 数据路径配置
 #############################################
@@ -65,6 +67,19 @@ PROGRESS = True
 
 # 使用的CPU核心数，None表示使用全部可用核心
 NCORES = None
+
+# MCMC移动策略配置
+# 每个元素是一个元组 (move, weight)，weight表示该移动策略的使用权重
+# 可用的移动策略:
+# - emcee.moves.DESnookerMove(): 差分进化Snooker移动
+# - emcee.moves.DEMove(): 差分进化移动
+# - emcee.moves.GaussianMove(): 高斯移动
+# - emcee.moves.KDEMove(): 核密度估计移动
+# - emcee.moves.StretchMove(): 伸展移动
+MCMC_MOVES = [
+    (emcee.moves.DESnookerMove(), 0.8),  # 使用80%的Snooker移动
+    (emcee.moves.DEMove(), 0.2),  # 使用20%的差分进化移动
+]
 
 #############################################
 # 先验分布配置
